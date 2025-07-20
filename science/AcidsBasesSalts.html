@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Acids, Bases, and Salts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cool Slate -->
+    <!-- Application Structure Plan: The application uses a thematic, tabbed navigation with five sections (Introduction, Reactions Explorer, pH Scale Interactive, Everyday Chemistry, Salt Factory) to allow non-linear exploration of the textbook content. This structure is more engaging than a linear format and groups related concepts for better usability. Interactions like simulators, dynamic content based on dropdowns, interactive charts, and clickable diagrams are designed to promote active learning. -->
+    <!-- Visualization & Content Choices: 1. Properties: Interactive indicator simulator (JS) to demonstrate color changes. Goal: Inform. Justification: More engaging than static text. 2. Reactions: Dropdown-driven content display (JS) showing equations and descriptions. Goal: Compare. Justification: Organizes complex information cleanly. 3. pH Scale: Interactive bar chart (Chart.js) with filtering. Goal: Compare/Organize. Justification: Visualizes data effectively, interaction aids comparison. 4. Everyday Use: Clickable cards (JS/HTML/CSS) revealing information. Goal: Relate. Justification: 'Gamified' discovery of real-world applications. 5. Salt Production: Clickable flowchart diagram (HTML/CSS/JS). Goal: Organize/Show Relationships. Justification: Visually maps out the industrial process from common salt. NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .nav-btn {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, color 0.3s;
+            color: #475569; /* slate-600 */
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .nav-btn.active {
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+        }
+        .nav-btn:hover:not(.active) {
+            background-color: #e2e8f0; /* slate-200 */
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 45vh;
+            max-height: 450px;
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+        }
+        .info-card {
+            cursor: pointer;
+            perspective: 1000px;
+        }
+        .info-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .info-card.flipped .info-card-inner {
+            transform: rotateY(180deg);
+        }
+        .info-card-front, .info-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+        .info-card-front {
+            background-color: #1e293b; /* slate-800 */
+            color: white;
+        }
+        .info-card-back {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0c4a6e; /* sky-900 */
+            transform: rotateY(180deg);
+        }
+        .flowchart-box {
+            border: 2px solid #cbd5e1; /* slate-300 */
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .flowchart-box:hover {
+            border-color: #0ea5e9; /* sky-500 */
+            background-color: #f0f9ff; /* sky-50 */
+        }
+        .flowchart-arrow {
+            position: relative;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .flowchart-arrow::after {
+            content: '→';
+            font-size: 2rem;
+            color: #94a3b8; /* slate-400 */
+        }
+        .flowchart-detail {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .flowchart-detail.visible {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between py-4">
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 sm:mb-0">Interactive Guide to Acids, Bases, and Salts</h1>
+                <nav id="main-nav" class="flex flex-wrap justify-center gap-2">
+                    <button class="nav-btn active" data-target="intro">Introduction</button>
+                    <button class="nav-btn" data-target="reactions">Reactions</button>
+                    <button class="nav-btn" data-target="ph-scale">pH Scale</button>
+                    <button class="nav-btn" data-target="everyday">Everyday Chemistry</button>
+                    <button class="nav-btn" data-target="salts">Salt Factory</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Section: Introduction -->
+        <section id="intro" class="content-section active">
+            <h2 class="text-2xl font-bold mb-4 text-sky-600">What are Acids and Bases?</h2>
+            <p class="mb-6 text-slate-600">Acids and bases are two fundamental classes of chemical compounds with opposite properties. We can identify them using substances called indicators, which change color in their presence. This section provides a basic overview and a simulator to see how indicators work.</p>
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-3 text-red-600">Acids</h3>
+                    <ul class="space-y-2 list-disc list-inside text-slate-700">
+                        <li>Have a sour taste (e.g., lemon juice).</li>
+                        <li>Turn blue litmus paper red.</li>
+                        <li>React with metals to produce hydrogen gas.</li>
+                        <li>In aqueous solution, they produce hydrogen ions ($H^+$).</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-600">Bases</h3>
+                    <ul class="space-y-2 list-disc list-inside text-slate-700">
+                        <li>Have a bitter taste and feel soapy.</li>
+                        <li>Turn red litmus paper blue.</li>
+                        <li>In aqueous solution, they produce hydroxide ions ($OH^-$).</li>
+                        <li>Bases soluble in water are called alkalis.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-4 text-center">Indicator Simulator</h3>
+                <div class="flex flex-wrap justify-center gap-4 mb-4">
+                    <button id="indicator-litmus" class="px-4 py-2 bg-slate-200 rounded-lg font-medium hover:bg-slate-300">Litmus</button>
+                    <button id="indicator-phenolphthalein" class="px-4 py-2 bg-slate-200 rounded-lg font-medium hover:bg-slate-300">Phenolphthalein</button>
+                    <button id="indicator-methyl" class="px-4 py-2 bg-slate-200 rounded-lg font-medium hover:bg-slate-300">Methyl Orange</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    <div>
+                        <h4 class="font-semibold mb-2">In Acidic Solution</h4>
+                        <div id="acid-color" class="w-full h-24 rounded-lg flex items-center justify-center font-bold text-white text-lg transition-colors" style="background-color: #ef4444;">Red</div>
+                        <p id="acid-text" class="mt-2 text-sm text-slate-600">Turns Blue Litmus Red</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">In Basic Solution</h4>
+                        <div id="base-color" class="w-full h-24 rounded-lg flex items-center justify-center font-bold text-white text-lg transition-colors" style="background-color: #3b82f6;">Blue</div>
+                        <p id="base-text" class="mt-2 text-sm text-slate-600">Turns Red Litmus Blue</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Reactions -->
+        <section id="reactions" class="content-section">
+            <h2 class="text-2xl font-bold mb-4 text-sky-600">Reactions Explorer</h2>
+            <p class="mb-6 text-slate-600">Acids and bases participate in several key types of chemical reactions. By understanding these reactions, we can predict their products and see how they interact with other substances. Select a reaction type from the dropdown below to learn more about it.</p>
+            <div class="card">
+                <div class="flex justify-center mb-6">
+                    <select id="reaction-selector" class="p-3 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                        <option value="acid-metal">Acid + Metal</option>
+                        <option value="acid-carbonate">Acid + Metal Carbonate</option>
+                        <option value="neutralization">Acid + Base (Neutralization)</option>
+                        <option value="metal-oxide">Acid + Metallic Oxide</option>
+                        <option value="nonmetal-oxide">Base + Non-metallic Oxide</option>
+                    </select>
+                </div>
+                <div id="reaction-display" class="p-6 bg-slate-100 rounded-lg min-h-[250px]">
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: pH Scale -->
+        <section id="ph-scale" class="content-section">
+            <h2 class="text-2xl font-bold mb-4 text-sky-600">Understanding the pH Scale</h2>
+            <p class="mb-6 text-slate-600">The pH scale measures how acidic or basic a substance is. The scale ranges from 0 to 14, with 7 being neutral. A pH less than 7 indicates acidity, while a pH greater than 7 indicates a base. This interactive chart shows the approximate pH of various common substances.</p>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="phChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Everyday Chemistry -->
+        <section id="everyday" class="content-section">
+            <h2 class="text-2xl font-bold mb-4 text-sky-600">Chemistry in Everyday Life</h2>
+            <p class="mb-6 text-slate-600">The principles of acids and bases are not just for the lab—they are at work all around us and even inside our bodies! From the food we eat to the way our bodies function, chemistry plays a vital role. Click on the cards below to discover the science behind these everyday phenomena.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="info-card h-48">
+                    <div class="info-card-inner">
+                        <div class="info-card-front">
+                            <h3 class="text-xl font-bold">Stomach Acidity</h3>
+                            <p class="mt-2">Why do we get heartburn?</p>
+                        </div>
+                        <div class="info-card-back">
+                            <h4 class="font-bold mb-1">The Chemistry</h4>
+                            <p class="text-sm">Your stomach produces HCl (pH 1.5-3.5) to digest food. Excess acid causes pain. Antacids like Milk of Magnesia ($Mg(OH)_2$), a mild base, neutralize the excess acid.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card h-48">
+                    <div class="info-card-inner">
+                        <div class="info-card-front">
+                            <h3 class="text-xl font-bold">Tooth Decay</h3>
+                            <p class="mt-2">How do cavities form?</p>
+                        </div>
+                        <div class="info-card-back">
+                            <h4 class="font-bold mb-1">The Chemistry</h4>
+                            <p class="text-sm">Bacteria in your mouth break down sugar, producing acid. When the pH drops below 5.5, it corrodes tooth enamel. Toothpaste is basic to help neutralize this acid.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="info-card h-48">
+                    <div class="info-card-inner">
+                        <div class="info-card-front">
+                            <h3 class="text-xl font-bold">Bee Stings</h3>
+                            <p class="mt-2">Why does a bee sting hurt?</p>
+                        </div>
+                        <div class="info-card-back">
+                            <h4 class="font-bold mb-1">The Chemistry</h4>
+                            <p class="text-sm">A bee sting injects methanoic acid, which causes pain and irritation. Applying a mild base like baking soda ($NaHCO_3$) on the area provides relief by neutralizing the acid.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="info-card h-48">
+                    <div class="info-card-inner">
+                        <div class="info-card-front">
+                            <h3 class="text-xl font-bold">Acid Rain</h3>
+                            <p class="mt-2">How does rain become acidic?</p>
+                        </div>
+                        <div class="info-card-back">
+                            <h4 class="font-bold mb-1">The Chemistry</h4>
+                            <p class="text-sm">Pollutants like sulfur dioxide ($SO_2$) and nitrogen oxides ($NO_x$) react with water in the atmosphere to form sulphuric and nitric acid. Rain with a pH below 5.6 is acid rain.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card h-48">
+                    <div class="info-card-inner">
+                        <div class="info-card-front">
+                            <h3 class="text-xl font-bold">Soil Health</h3>
+                            <p class="mt-2">Why do farmers test soil pH?</p>
+                        </div>
+                        <div class="info-card-back">
+                            <h4 class="font-bold mb-1">The Chemistry</h4>
+                            <p class="text-sm">Plants require a specific pH range for healthy growth. If soil is too acidic, farmers treat it with bases like quick lime ($CaO$) or slaked lime ($Ca(OH)_2$) to neutralize it.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="info-card h-48">
+                    <div class="info-card-inner">
+                        <div class="info-card-front">
+                            <h3 class="text-xl font-bold">Baking a Cake</h3>
+                            <p class="mt-2">What makes a cake fluffy?</p>
+                        </div>
+                        <div class="info-card-back">
+                            <h4 class="font-bold mb-1">The Chemistry</h4>
+                            <p class="text-sm">Baking soda ($NaHCO_3$) is a base that reacts with acidic ingredients (like buttermilk) or decomposes with heat to produce $CO_2$ gas. These gas bubbles get trapped, making the cake rise.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Salt Factory -->
+        <section id="salts" class="content-section">
+            <h2 class="text-2xl font-bold mb-4 text-sky-600">The Salt Factory</h2>
+            <p class="mb-6 text-slate-600">Common salt (sodium chloride, $NaCl$) is more than just a food seasoning; it's a vital raw material for producing many important chemicals. This flowchart shows how various substances are derived from salt. Click on the process or product boxes to learn more about their uses.</p>
+            <div class="space-y-4">
+                <div class="flowchart-box" data-key="brine">
+                    <h3 class="font-bold">Brine (Aqueous $NaCl$ Solution)</h3>
+                    <p class="text-sm text-slate-500">The starting material</p>
+                </div>
+                <div class="flowchart-arrow"></div>
+                <div class="flowchart-box" data-key="chloralkali">
+                    <h3 class="font-bold">Chlor-alkali Process (Electrolysis)</h3>
+                    <p class="text-sm text-slate-500">Electricity is passed through brine.</p>
+                </div>
+                <div id="detail-chloralkali" class="flowchart-detail p-4 bg-slate-100 rounded-lg text-center">
+                    <p class="text-slate-700">This process decomposes brine into three useful products.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4 my-4">
+                    <div class="flowchart-arrow rotate-[-45deg]"></div>
+                    <div class="flowchart-arrow rotate-[90deg]"></div>
+                    <div class="flowchart-arrow rotate-[45deg]"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center space-y-4">
+                         <div class="flowchart-box" data-key="h2">
+                            <h3 class="font-bold">Hydrogen Gas ($H_2$)</h3>
+                        </div>
+                        <div id="detail-h2" class="flowchart-detail p-4 bg-slate-100 rounded-lg">
+                            <h4 class="font-semibold mb-2">Uses:</h4>
+                            <ul class="text-sm list-disc list-inside"><li>Fuels</li><li>Margarine production</li><li>Ammonia for fertilizers</li></ul>
+                        </div>
+                    </div>
+                    <div class="text-center space-y-4">
+                         <div class="flowchart-box" data-key="naoh">
+                            <h3 class="font-bold">Sodium Hydroxide ($NaOH$)</h3>
+                        </div>
+                        <div id="detail-naoh" class="flowchart-detail p-4 bg-slate-100 rounded-lg">
+                            <h4 class="font-semibold mb-2">Uses:</h4>
+                            <ul class="text-sm list-disc list-inside"><li>Soaps and detergents</li><li>Paper making</li><li>Artificial fibres</li><li>Degreasing metals</li></ul>
+                        </div>
+                    </div>
+                    <div class="text-center space-y-4">
+                        <div class="flowchart-box" data-key="cl2">
+                            <h3 class="font-bold">Chlorine Gas ($Cl_2$)</h3>
+                        </div>
+                         <div id="detail-cl2" class="flowchart-detail p-4 bg-slate-100 rounded-lg">
+                            <h4 class="font-semibold mb-2">Uses:</h4>
+                            <ul class="text-sm list-disc list-inside"><li>Water treatment</li><li>PVC pipes</li><li>Disinfectants, Pesticides</li></ul>
+                        </div>
+                        <div class="flowchart-arrow"></div>
+                        <div class="flowchart-box" data-key="bleach">
+                            <h3 class="font-bold">Bleaching Powder ($Ca(ClO)_2$)</h3>
+                            <p class="text-sm text-slate-500">(from $Cl_2$ + Slaked Lime)</p>
+                        </div>
+                         <div id="detail-bleach" class="flowchart-detail p-4 bg-slate-100 rounded-lg">
+                            <h4 class="font-semibold mb-2">Uses:</h4>
+                            <ul class="text-sm list-disc list-inside"><li>Bleaching textiles & paper</li><li>Oxidising agent</li><li>Disinfecting water</li></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Main Navigation
+    const navButtons = document.querySelectorAll('#main-nav .nav-btn');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            
+            navButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            contentSections.forEach(section => {
+                if (section.id === targetId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+        });
+    });
+
+    // Section 1: Indicator Simulator
+    const indicatorData = {
+        litmus: { acid: { color: '#ef4444', text: 'Turns Blue Litmus Red' }, base: { color: '#3b82f6', text: 'Turns Red Litmus Blue' } },
+        phenolphthalein: { acid: { color: '#f8fafc', text: 'Colourless' }, base: { color: '#ec4899', text: 'Pink' } },
+        methyl: { acid: { color: '#f97316', text: 'Red' }, base: { color: '#facc15', text: 'Yellow' } }
+    };
+    
+    const acidColorDiv = document.getElementById('acid-color');
+    const baseColorDiv = document.getElementById('base-color');
+    const acidTextP = document.getElementById('acid-text');
+    const baseTextP = document.getElementById('base-text');
+    
+    function updateIndicator(indicatorName) {
+        const data = indicatorData[indicatorName];
+        acidColorDiv.style.backgroundColor = data.acid.color;
+        acidColorDiv.textContent = data.acid.text;
+        baseColorDiv.style.backgroundColor = data.base.color;
+        baseColorDiv.textContent = data.base.text;
+        
+        if (indicatorName === 'phenolphthalein') {
+             acidColorDiv.classList.add('border', 'border-slate-300', 'text-slate-800');
+        } else {
+             acidColorDiv.classList.remove('border', 'border-slate-300', 'text-slate-800');
+        }
+    }
+    
+    document.getElementById('indicator-litmus').addEventListener('click', () => updateIndicator('litmus'));
+    document.getElementById('indicator-phenolphthalein').addEventListener('click', () => updateIndicator('phenolphthalein'));
+    document.getElementById('indicator-methyl').addEventListener('click', () => updateIndicator('methyl'));
+    updateIndicator('litmus');
+
+    // Section 2: Reactions Explorer
+    const reactionSelector = document.getElementById('reaction-selector');
+    const reactionDisplay = document.getElementById('reaction-display');
+    const reactionData = {
+        'acid-metal': {
+            title: 'Acid + Metal',
+            general: 'Acid + Metal → Salt + Hydrogen gas',
+            example: 'Example: $2HCl + Zn → ZnCl_2 + H_2$',
+            desc: 'Acids react with most metals to produce hydrogen gas and a corresponding salt. The hydrogen gas can be tested by bringing a burning splint near it, which will result in a characteristic "pop" sound.'
+        },
+        'acid-carbonate': {
+            title: 'Acid + Metal Carbonate / Hydrogencarbonate',
+            general: 'Acid + Metal Carbonate → Salt + Water + Carbon dioxide',
+            example: 'Example: $Na_2CO_3 + 2HCl → 2NaCl + H_2O + CO_2$',
+            desc: 'Acids react with carbonates and hydrogencarbonates to produce carbon dioxide gas, which causes effervescence (fizzing). This gas can be passed through lime water, turning it milky.'
+        },
+        'neutralization': {
+            title: 'Acid + Base (Neutralization)',
+            general: 'Acid + Base → Salt + Water',
+            example: 'Example: $HCl + NaOH → NaCl + H_2O$',
+            desc: 'This fundamental reaction involves an acid and a base reacting to nullify each other\'s effects, forming a salt and water. This process is often exothermic, releasing heat.'
+        },
+        'metal-oxide': {
+            title: 'Acid + Metallic Oxide',
+            general: 'Acid + Metallic Oxide → Salt + Water',
+            example: 'Example: $2HCl + CuO → CuCl_2 + H_2O$',
+            desc: 'Metallic oxides are generally basic in nature. They react with acids in a way similar to a neutralization reaction, producing a salt and water. In this example, the solution turns blue-green due to the formation of copper(II) chloride.'
+        },
+        'nonmetal-oxide': {
+            title: 'Base + Non-metallic Oxide',
+            general: 'Base + Non-metallic Oxide → Salt + Water',
+            example: 'Example: $Ca(OH)_2 + CO_2 → CaCO_3 + H_2O$',
+            desc: 'Non-metallic oxides are acidic in nature. They react with bases to form a salt and water. This is the same reaction that turns lime water milky, confirming the acidic nature of carbon dioxide.'
+        }
+    };
+
+    function updateReactionDisplay() {
+        const selectedValue = reactionSelector.value;
+        const data = reactionData[selectedValue];
+        reactionDisplay.innerHTML = `
+            <h4 class="text-xl font-semibold mb-3 text-sky-700">${data.title}</h4>
+            <div class="mb-4">
+                <p class="font-medium text-slate-800">General Equation:</p>
+                <p class="p-2 bg-white rounded font-mono">${data.general}</p>
+            </div>
+            <div class="mb-4">
+                <p class="font-medium text-slate-800">Specific Example:</p>
+                <p class="p-2 bg-white rounded font-mono">${data.example}</p>
+            </div>
+            <div>
+                <p class="font-medium text-slate-800">Description:</p>
+                <p class="text-slate-600">${data.desc}</p>
+            </div>
+        `;
+    }
+    reactionSelector.addEventListener('change', updateReactionDisplay);
+    updateReactionDisplay();
+
+    // Section 3: pH Scale Chart
+    const phData = {
+        labels: ['Gastric Juice', 'Lemon Juice', 'Vinegar', 'Tomato Juice', 'Coffee', 'Acid Rain', 'Milk', 'Pure Water', 'Blood', 'Baking Soda Sol.', 'Milk of Magnesia', 'Ammonia Sol.', 'Soapy Water', 'Bleach', '1M NaOH'],
+        datasets: [{
+            label: 'pH Value',
+            data: [1.2, 2.2, 2.9, 4.1, 5.0, 5.2, 6.5, 7.0, 7.4, 8.5, 10.5, 11.0, 12.0, 13.0, 14.0],
+            backgroundColor: (context) => {
+                const value = context.raw;
+                if (value < 6) return '#ef4444'; // red-500
+                if (value < 7) return '#f97316'; // orange-500
+                if (value === 7) return '#10b981'; // emerald-500
+                if (value < 9) return '#60a5fa'; // blue-400
+                if (value <= 14) return '#3b82f6'; // blue-600
+                return '#64748b';
+            },
+            borderColor: '#ffffff',
+            borderWidth: 2
+        }]
+    };
+    
+    const phConfig = {
+        type: 'bar',
+        data: phData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 14,
+                    title: {
+                        display: true,
+                        text: 'pH Value'
+                    }
+                },
+                y: {
+                   ticks: {
+                       autoSkip: false
+                   }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.x !== null) {
+                                label += context.parsed.x.toFixed(1);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    };
+    const phChart = new Chart(
+        document.getElementById('phChart'),
+        phConfig
+    );
+    
+    // Section 4: Everyday Chemistry Cards
+    const infoCards = document.querySelectorAll('.info-card');
+    infoCards.forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('flipped');
+        });
+    });
+
+    // Section 5: Salt Factory
+    const flowchartBoxes = document.querySelectorAll('.flowchart-box');
+    flowchartBoxes.forEach(box => {
+        box.addEventListener('click', () => {
+            const detailId = 'detail-' + box.getAttribute('data-key');
+            const detailEl = document.getElementById(detailId);
+            if(detailEl) {
+                detailEl.classList.toggle('visible');
+            }
+        });
+    });
+
+});
+</script>
+
+</body>
+</html>

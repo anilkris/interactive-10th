@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Interactive Overview of Agriculture in India</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Green -->
+    <!-- Application Structure Plan: The SPA is designed with a top navigation bar for quick access to distinct thematic sections: Overview, Farming Systems, Crop Explorer, Production Leaders, and Key Reforms. This non-linear structure replaces the report's linear chapter format, allowing users to directly engage with topics of interest. The "Crop Explorer" and "Production Leaders" sections are highly interactive, using filters and dynamic charts to encourage user-driven discovery of crop data. This design was chosen to make the dense information more digestible and engaging, transforming passive reading into active exploration and comparison, which is better for understanding relationships and key facts within the agricultural landscape. -->
+    <!-- Visualization & Content Choices: 
+        - Overview: Goal is to inform. Presented as key stat cards for immediate impact. Method: HTML/Tailwind. Interaction: None. Justification: Provides a high-level summary at a glance.
+        - Farming Systems: Goal is to compare. Presented as a three-column card layout. Method: HTML/Tailwind with icons. Interaction: None. Justification: Facilitates easy side-by-side comparison of farming characteristics.
+        - Crop Explorer: Goal is to organize and explore. Presented as a filterable grid of crop cards. Method: HTML/Tailwind. Interaction: JS-powered buttons to filter by season and type, revealing details on click. Justification: Allows users to systematically explore the vast number of crops based on their own criteria.
+        - Production Leaders: Goal is to compare and show relationships. Presented as a dynamic bar chart. Method: Chart.js on Canvas. Interaction: A dropdown menu updates the chart to show leading producer states for the selected crop. Justification: Visualizes quantitative data dynamically, making production comparisons more intuitive than reading a list.
+        - Reforms: Goal is to show change over time. Presented as a vertical timeline. Method: HTML/Tailwind. Interaction: None. Justification: Clearly structures historical events for better comprehension of agricultural policy evolution.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div id="app" class="container mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <header class="sticky top-0 bg-stone-50/80 backdrop-blur-lg z-50 py-4 border-b border-stone-200">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl sm:text-2xl font-bold text-green-800">Agriculture in India: An Interactive Report</h1>
+                <nav class="hidden md:flex space-x-6 text-sm font-medium">
+                    <a href="#overview" class="text-stone-600 hover:text-green-700">Overview</a>
+                    <a href="#farming-systems" class="text-stone-600 hover:text-green-700">Farming Systems</a>
+                    <a href="#crop-explorer" class="text-stone-600 hover:text-green-700">Crop Explorer</a>
+                    <a href="#production" class="text-stone-600 hover:text-green-700">Production Leaders</a>
+                    <a href="#reforms" class="text-stone-600 hover:text-green-700">Reforms</a>
+                </nav>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="bg-white border border-stone-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="#overview">Overview</option>
+                        <option value="#farming-systems">Farming Systems</option>
+                        <option value="#crop-explorer">Crop Explorer</option>
+                        <option value="#production">Production</option>
+                        <option value="#reforms">Reforms</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <main class="py-8 sm:py-12">
+
+            <section id="overview" class="mb-16 scroll-mt-24">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-stone-900">India's Agricultural Landscape at a Glance</h2>
+                    <p class="mt-2 text-lg text-stone-600 max-w-3xl mx-auto">Agriculture is a primary activity in India, engaging a significant portion of the population and serving as the backbone for numerous industries. This section provides a high-level summary of its scale and importance based on the source report.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200 text-center">
+                        <div class="text-4xl font-bold text-green-700">2/3</div>
+                        <p class="mt-2 text-stone-600 font-medium">Of the population engaged in agricultural activities.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200 text-center">
+                        <div class="text-4xl font-bold text-green-700">#2</div>
+                        <p class="mt-2 text-stone-600 font-medium">Global producer of Rice, Tea, Cotton, and Fruits & Vegetables.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200 text-center">
+                        <div class="text-4xl font-bold text-green-700">#1</div>
+                        <p class="mt-2 text-stone-600 font-medium">Largest producer and consumer of Pulses in the world.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200 text-center">
+                        <div class="text-4xl font-bold text-green-700">3</div>
+                        <p class="mt-2 text-stone-600 font-medium">Distinct cropping seasons: Rabi, Kharif, and Zaid.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="farming-systems" class="mb-16 scroll-mt-24">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-stone-900">Farming Systems in India</h2>
+                    <p class="mt-2 text-lg text-stone-600 max-w-3xl mx-auto">Cultivation methods in India have evolved based on physical environment, technology, and socio-cultural practices. Explore the three main types of farming systems practiced across the country to understand their unique characteristics.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200">
+                        <h3 class="font-bold text-xl text-green-800 mb-3">Primitive Subsistence</h3>
+                        <p class="text-stone-600 text-sm mb-4">Practiced on small land patches with primitive tools and family labor. Known as 'slash and burn' agriculture, it relies on monsoons and natural soil fertility.</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">⛏️</span><strong>Tools:</strong> Hoe, dao, digging sticks</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🌱</span><strong>Inputs:</strong> Low; no fertilizers or modern inputs</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🎯</span><strong>Goal:</strong> Family sustenance</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🌍</span><strong>Example:</strong> 'Jhumming' in North-East India</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200">
+                        <h3 class="font-bold text-xl text-green-800 mb-3">Intensive Subsistence</h3>
+                        <p class="text-stone-600 text-sm mb-4">Practiced in areas of high population pressure. It is labor-intensive, using high doses of biochemical inputs and irrigation for higher production from limited land.</p>
+                         <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">👨‍🌾</span><strong>Labor:</strong> High intensity</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🧪</span><strong>Inputs:</strong> High (biochemicals, irrigation)</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🎯</span><strong>Goal:</strong> Maximum output from limited land</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🌍</span><strong>Challenge:</strong> Small land holdings due to inheritance laws</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200">
+                        <h3 class="font-bold text-xl text-green-800 mb-3">Commercial Farming</h3>
+                        <p class="text-stone-600 text-sm mb-4">Characterized by the use of modern inputs like HYV seeds, fertilizers, and pesticides to achieve high productivity for the market. Plantation is a type of commercial farming.</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🚜</span><strong>Technology:</strong> Modern inputs (HYV seeds)</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">💰</span><strong>Inputs:</strong> Capital intensive</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🎯</span><strong>Goal:</strong> High productivity for market sale</li>
+                            <li class="flex items-center"><span class="font-mono text-lg mr-2">🌍</span><strong>Example:</strong> Tea/Coffee plantations, Rice in Punjab</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="crop-explorer" class="mb-16 scroll-mt-24">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-stone-900">Interactive Crop Explorer</h2>
+                    <p class="mt-2 text-lg text-stone-600 max-w-3xl mx-auto">India's diverse climate and soil support a wide variety of crops. Use the filters below to explore different crops based on their type and cropping season, and click on a crop to learn more about its growing conditions.</p>
+                </div>
+                <div class="flex flex-wrap justify-center gap-3 mb-8">
+                    <button data-filter="all" class="filter-btn bg-green-600 text-white py-2 px-4 rounded-full text-sm font-medium">All Crops</button>
+                    <button data-filter="rabi" class="filter-btn bg-white text-stone-700 py-2 px-4 rounded-full text-sm font-medium border border-stone-300">Rabi</button>
+                    <button data-filter="kharif" class="filter-btn bg-white text-stone-700 py-2 px-4 rounded-full text-sm font-medium border border-stone-300">Kharif</button>
+                    <button data-filter="zaid" class="filter-btn bg-white text-stone-700 py-2 px-4 rounded-full text-sm font-medium border border-stone-300">Zaid</button>
+                    <button data-filter="food" class="filter-btn bg-white text-stone-700 py-2 px-4 rounded-full text-sm font-medium border border-stone-300">Food Grains</button>
+                    <button data-filter="cash" class="filter-btn bg-white text-stone-700 py-2 px-4 rounded-full text-sm font-medium border border-stone-300">Cash Crops</button>
+                    <button data-filter="fibre" class="filter-btn bg-white text-stone-700 py-2 px-4 rounded-full text-sm font-medium border border-stone-300">Fibre</button>
+                </div>
+                <div id="crop-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                </div>
+                
+                <div id="crop-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <h3 id="modal-title" class="text-2xl font-bold text-green-800"></h3>
+                                <button id="modal-close" class="text-stone-500 hover:text-stone-800">&times;</button>
+                            </div>
+                            <p id="modal-description" class="mt-2 text-sm text-stone-600"></p>
+                            <div class="mt-4 border-t pt-4 space-y-2">
+                                <p class="text-sm"><strong class="font-medium text-stone-800">Season:</strong> <span id="modal-season"></span></p>
+                                <p class="text-sm"><strong class="font-medium text-stone-800">Temperature:</strong> <span id="modal-temp"></span></p>
+                                <p class="text-sm"><strong class="font-medium text-stone-800">Rainfall:</strong> <span id="modal-rainfall"></span></p>
+                                <p class="text-sm"><strong class="font-medium text-stone-800">Major Producers:</strong> <span id="modal-producers"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+            
+            <section id="production" class="mb-16 scroll-mt-24">
+                 <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-stone-900">Major Crop Production Leaders</h2>
+                    <p class="mt-2 text-lg text-stone-600 max-w-3xl mx-auto">While many crops are grown across India, certain states are major producers due to favorable conditions. Select a crop from the dropdown to visualize the leading states for its production.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md border border-stone-200">
+                    <div class="flex justify-center mb-4">
+                        <select id="crop-select" class="bg-white border border-stone-300 rounded-md py-2 px-4 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="productionChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reforms" class="scroll-mt-24">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-stone-900">Key Agricultural Reforms</h2>
+                    <p class="mt-2 text-lg text-stone-600 max-w-3xl mx-auto">Since Independence, India has initiated several technological and institutional reforms to boost agricultural development. This timeline highlights the most significant initiatives that have shaped modern Indian agriculture.</p>
+                </div>
+                <div class="relative max-w-2xl mx-auto">
+                    <div class="border-l-2 border-green-700 absolute h-full top-0 left-3"></div>
+                    <div class="space-y-12">
+                        <div class="relative">
+                            <div class="absolute w-6 h-6 bg-green-700 rounded-full top-0 left-0 -ml-3 flex items-center justify-center text-white text-xs">1</div>
+                            <div class="ml-8">
+                                <h4 class="font-bold text-lg">Post-Independence Land Reforms</h4>
+                                <p class="text-sm text-stone-600 mt-1">Following Independence, the First Five Year Plan focused on land reform. Key priorities included collectivisation, consolidation of land holdings, and the abolition of the Zamindari system to address land fragmentation.</p>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute w-6 h-6 bg-green-700 rounded-full top-0 left-0 -ml-3 flex items-center justify-center text-white text-xs">2</div>
+                            <div class="ml-8">
+                                <h4 class="font-bold text-lg">The Green & White Revolutions (1960s-70s)</h4>
+                                <p class="text-sm text-stone-600 mt-1">The government introduced major technological shifts. The <strong class="font-semibold">Green Revolution</strong> focused on package technology (HYV seeds, fertilizers), while the <strong class="font-semibold">White Revolution</strong> (Operation Flood) aimed to increase milk production.</p>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute w-6 h-6 bg-green-700 rounded-full top-0 left-0 -ml-3 flex items-center justify-center text-white text-xs">3</div>
+                            <div class="ml-8">
+                                <h4 class="font-bold text-lg">Comprehensive Land Development (1980s-90s)</h4>
+                                <p class="text-sm text-stone-600 mt-1">A broader program was initiated, including both institutional and technical reforms. This included crop insurance against natural disasters and the establishment of Grameen Banks and cooperative societies to provide loans at lower interest rates.</p>
+                            </div>
+                        </div>
+                         <div class="relative">
+                            <div class="absolute w-6 h-6 bg-green-700 rounded-full top-0 left-0 -ml-3 flex items-center justify-center text-white text-xs">4</div>
+                            <div class="ml-8">
+                                <h4 class="font-bold text-lg">Farmer-Centric Schemes</h4>
+                                <p class="text-sm text-stone-600 mt-1">Introduction of schemes like the Kisan Credit Card (KCC) and the Personal Accident Insurance Scheme (PAIS). The government also began announcing Minimum Support Prices (MSP) to protect farmers from exploitation.</p>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute w-6 h-6 bg-green-700 rounded-full top-0 left-0 -ml-3 flex items-center justify-center text-white text-xs">5</div>
+                            <div class="ml-8">
+                                <h4 class="font-bold text-lg">Bhoodan-Gramdan Movement</h4>
+                                <p class="text-sm text-stone-600 mt-1">A voluntary land reform movement initiated by Vinoba Bhave, known as the "Blood-less Revolution," encouraging wealthy landowners to donate land to the landless.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const cropData = [
+            { name: 'Rice', season: 'Kharif', type: 'food', temp: 'Above 25°C', rainfall: 'Above 100 cm', producers: 'West Bengal, Uttar Pradesh, Punjab, Andhra Pradesh, Tamil Nadu', description: 'Staple food crop for a majority of India\'s population.' },
+            { name: 'Wheat', season: 'Rabi', type: 'food', temp: 'Cool Season, Bright Sun at Ripening', rainfall: '50-75 cm', producers: 'Punjab, Haryana, Uttar Pradesh, Madhya Pradesh, Rajasthan', description: 'The second most important cereal crop in India.' },
+            { name: 'Millets', season: 'Kharif', type: 'food', temp: 'Varies', rainfall: 'Rain-fed', producers: 'Maharashtra (Jowar), Rajasthan (Bajra), Karnataka (Ragi)', description: 'Coarse grains (Jowar, Bajra, Ragi) with high nutritional value.' },
+            { name: 'Maize', season: 'Kharif', type: 'food', temp: '21°C - 27°C', rainfall: 'Varies', producers: 'Karnataka, Madhya Pradesh, Uttar Pradesh, Bihar', description: 'Used as both food and fodder.' },
+            { name: 'Pulses', season: 'Rabi & Kharif', type: 'food', temp: 'Varies', rainfall: 'Less moisture', producers: 'Madhya Pradesh, Rajasthan, Maharashtra, Uttar Pradesh', description: 'Major source of protein; helps in restoring soil fertility.' },
+            { name: 'Sugarcane', season: 'Annual', type: 'cash', temp: '21°C - 27°C', rainfall: '75-100 cm', producers: 'Uttar Pradesh, Maharashtra, Karnataka, Tamil Nadu', description: 'A tropical and subtropical crop, main source of sugar and gur.' },
+            { name: 'Oil Seeds', season: 'Rabi & Kharif', type: 'cash', temp: 'Varies', rainfall: 'Varies', producers: 'Gujarat (Groundnut), Rajasthan, Tamil Nadu', description: 'Includes groundnut, mustard, soyabean; used for cooking and industry.' },
+            { name: 'Tea', season: 'Annual', type: 'cash', temp: 'Warm, Moist, Frost-Free', rainfall: 'Frequent showers', producers: 'Assam, West Bengal (Darjeeling), Tamil Nadu, Kerala', description: 'An important beverage crop grown on plantations.' },
+            { name: 'Coffee', season: 'Annual', type: 'cash', temp: 'Warm', rainfall: 'Varies', producers: 'Karnataka, Kerala, Tamil Nadu', description: 'Indian coffee, especially the Arabica variety, is known for its quality.' },
+            { name: 'Cotton', season: 'Kharif', type: 'fibre', temp: 'High', rainfall: 'Light', producers: 'Maharashtra, Gujarat, Madhya Pradesh, Karnataka', description: 'A major fibre crop that grows well in black cotton soil.' },
+            { name: 'Jute', season: 'Kharif', type: 'fibre', temp: 'High', rainfall: 'Heavy', producers: 'West Bengal, Bihar, Assam, Odisha', description: 'Known as the "Golden Fibre," used for bags, ropes, and carpets.' },
+            { name: 'Fruits', season: 'Varies', type: 'cash', temp: 'Varies', rainfall: 'Varies', producers: 'Maharashtra (Mangoes), Nagpur (Oranges), J&K (Apples)', description: 'India produces a wide variety of tropical and temperate fruits.' },
+            { name: 'Vegetables', season: 'Varies', type: 'cash', temp: 'Varies', rainfall: 'Varies', producers: 'Various states', description: 'Important producer of pea, cauliflower, onion, tomato, etc.' },
+            { name: 'Rubber', season: 'Annual', type: 'cash', temp: 'Above 25°C', rainfall: 'Over 200 cm', producers: 'Kerala, Tamil Nadu, Karnataka, Andaman & Nicobar', description: 'An equatorial crop used as an important industrial raw material.' },
+            { name: 'Watermelon', season: 'Zaid', type: 'cash', temp: 'Warm', rainfall: 'Irrigation', producers: 'Various states', description: 'A common summer crop grown in the Zaid season.' },
+        ];
+        
+        const productionData = {
+            'Rice': { labels: ['West Bengal', 'Uttar Pradesh', 'Punjab', 'Andhra Pradesh', 'Odisha'], data: [14.9, 14.1, 11.8, 7.4, 6.7] },
+            'Wheat': { labels: ['Uttar Pradesh', 'Madhya Pradesh', 'Punjab', 'Haryana', 'Rajasthan'], data: [32.4, 17.5, 17.5, 11.2, 10.4] },
+            'Jute': { labels: ['West Bengal', 'Bihar', 'Assam', 'Odisha', 'Meghalaya'], data: [76.5, 11.2, 8.1, 3.4, 0.4] },
+            'Cotton': { labels: ['Gujarat', 'Maharashtra', 'Telangana', 'Karnataka', 'Rajasthan'], data: [34.0, 21.0, 13.0, 8.0, 6.0] },
+            'Sugarcane': { labels: ['Uttar Pradesh', 'Maharashtra', 'Karnataka', 'Tamil Nadu', 'Bihar'], data: [45.0, 20.0, 11.0, 5.0, 4.0] },
+            'Tea': { labels: ['Assam', 'West Bengal', 'Tamil Nadu', 'Kerala', 'Others'], data: [52.0, 24.0, 14.0, 8.0, 2.0] },
+        };
+
+        const cropGrid = document.getElementById('crop-grid');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        const populateGrid = (filter = 'all') => {
+            cropGrid.innerHTML = '';
+            const filteredCrops = cropData.filter(crop => {
+                if (filter === 'all') return true;
+                if (filter === 'food' || filter === 'cash' || filter === 'fibre') return crop.type === filter;
+                return crop.season.toLowerCase().includes(filter);
+            });
+
+            filteredCrops.forEach(crop => {
+                const cropEl = document.createElement('div');
+                cropEl.className = 'crop-item bg-white p-4 rounded-lg shadow-sm border border-stone-200 text-center cursor-pointer hover:shadow-lg hover:border-green-400 transition-shadow';
+                cropEl.innerHTML = `<h4 class="font-semibold text-md text-stone-700">${crop.name}</h4>`;
+                cropEl.dataset.cropName = crop.name;
+                cropGrid.appendChild(cropEl);
+            });
+            addModalListeners();
+        };
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('bg-green-600', 'text-white'));
+                filterBtns.forEach(b => b.classList.add('bg-white', 'text-stone-700'));
+                btn.classList.add('bg-green-600', 'text-white');
+                btn.classList.remove('bg-white', 'text-stone-700');
+                populateGrid(btn.dataset.filter);
+            });
+        });
+
+        const modal = document.getElementById('crop-modal');
+        const modalClose = document.getElementById('modal-close');
+        
+        const showModal = (cropName) => {
+            const crop = cropData.find(c => c.name === cropName);
+            if(crop) {
+                document.getElementById('modal-title').innerText = crop.name;
+                document.getElementById('modal-description').innerText = crop.description;
+                document.getElementById('modal-season').innerText = crop.season;
+                document.getElementById('modal-temp').innerText = crop.temp;
+                document.getElementById('modal-rainfall').innerText = crop.rainfall;
+                document.getElementById('modal-producers').innerText = crop.producers;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        };
+
+        const hideModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        modalClose.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) {
+                hideModal();
+            }
+        });
+
+        function addModalListeners() {
+            document.querySelectorAll('.crop-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    showModal(item.dataset.cropName);
+                });
+            });
+        }
+        
+        populateGrid();
+
+        const cropSelect = document.getElementById('crop-select');
+        Object.keys(productionData).forEach(crop => {
+            const option = document.createElement('option');
+            option.value = crop;
+            option.textContent = crop;
+            cropSelect.appendChild(option);
+        });
+        
+        const ctx = document.getElementById('productionChart').getContext('2d');
+        let productionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Production Share (%)',
+                    data: [],
+                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                    borderColor: 'rgba(22, 163, 74, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Leading Producer States',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.dataset.label}: ${context.raw}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Share of National Production (%)'
+                        }
+                    }
+                }
+            }
+        });
+
+        const updateChart = (crop) => {
+            const data = productionData[crop];
+            productionChart.data.labels = data.labels;
+            productionChart.data.datasets[0].data = data.data;
+            productionChart.options.plugins.title.text = `Leading ${crop} Producer States`;
+            productionChart.update();
+        };
+
+        cropSelect.addEventListener('change', (e) => {
+            updateChart(e.target.value);
+        });
+
+        updateChart('Rice');
+        
+        const mobileNav = document.getElementById('mobile-nav');
+        mobileNav.addEventListener('change', () => {
+            window.location.hash = mobileNav.value;
+        });
+
+    });
+</script>
+</body>
+</html>
