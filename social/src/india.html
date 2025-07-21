@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map of India</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Style the main SVG container */
+        #india-map {
+            width: 80%;
+            max-width: 600px;
+            height: auto;
+            stroke: #fff; /* White borders for states */
+            stroke-width: 1;
+        }
+
+        /* Default style for all state paths */
+        #india-map path {
+            fill: #aaa; /* Default grey color for states */
+            transition: fill 0.3s ease; /* Smooth color transition on hover */
+            cursor: pointer;
+        }
+
+        /* Style for a state when hovered over */
+        #india-map path:hover {
+            fill: #FF9933; /* Saffron color on hover */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Click on a State or UT</h1>
+
+    <svg version="1.1" id="india-map" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 923">
+      <path id="IN-AN" title="Andaman and Nicobar Islands" d="M630.1,438.2l-4.4,5.3l-2.1,3.2l-2.1,5.3l-2.1,5.3l0,4.2l-2.1,4.2l-2.1,4.2l-3.2,5.3l-2.1,3.2l-2.1,3.2l-2.1,3.2l-1.1,5.3l-1.1,3.2l-2.1,5.3l-1.1,4.2l-2.1,2.1l-1.1,3.2l-2.1,4.2l-1.1,3.2l-1.1,4.2l-1.1,3.2l-1.1,3.2l-1.1,4.2l-2.1,2.1l-1.1,2.1l-1.1,2.1l-1.1,3.2l-1.1,2.1l-1.1,3.2l-2.1,3.2l-2.1,2.1l-1.1,3.2l-2.1,2.1l-1.1,3.2l-1.1,3.2l-1.1,1.1l-1.1,3.2l-2.1,3.2l-1.1,2.1l-1.1,2.1l-1.1,2.1l-1.1,2.1l-2.1,2.1l-1.1,1.1l-2.1,3.2l-1.1,2.1l-1.1,1.1l-1.1,2.1l-1.1,2.1l-1.1,2.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-2.1,2.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.1,1.1l-1.
